@@ -14,7 +14,7 @@ const Navbar = () => {
     <header className="navbar">
       <div className="navbar-inner">
         <Link to="/" className="navbar-brand" onClick={() => setOpen(false)}>
-          Project<span>Decoration</span>
+          Roomora <span>AI</span>
         </Link>
 
         <button

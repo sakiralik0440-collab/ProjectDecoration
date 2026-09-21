@@ -133,7 +133,7 @@ const Register = () => {
   return (
     <AuthLayout
       visualTitle="Create Your Dream Space"
-      visualText="Join ProjectDecoration and start transforming your spaces with AI."
+      visualText="Join Roomora AI and start transforming your spaces with AI."
       cardTitle="Create Account"
       cardSubtitle="Start designing beautiful interiors with AI."
       footer={

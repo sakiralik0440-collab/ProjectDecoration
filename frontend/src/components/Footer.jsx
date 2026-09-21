@@ -13,7 +13,7 @@ const Footer = () => {
         {/* Brand */}
         <div className="pd-footer-brand">
           <Link to="/" className="pd-footer-logo">
-            Project<span>Decoration</span>
+            Roomora<span>AI</span>
           </Link>
 
           <p className="pd-footer-description">
@@ -49,7 +49,7 @@ const Footer = () => {
 
         {/* About */}
         <div className="pd-footer-column pd-footer-about">
-          <h4>ProjectDecoration</h4>
+          <h4>Roomora AI</h4>
 
           <p>
             Create beautiful, personalized interiors
@@ -105,7 +105,7 @@ const Footer = () => {
       <div className="pd-footer-bottom">
         <div className="pd-footer-bottom-inner">
           <p>
-            © {currentYear} ProjectDecoration. All rights reserved.
+            © {currentYear} Roomora AI. All rights reserved.
           </p>
 
           <div className="pd-footer-bottom-links">

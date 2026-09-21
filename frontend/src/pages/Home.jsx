@@ -275,7 +275,7 @@ const Home = () => {
               </h2>
 
               <p>
-                ProjectDecoration combines AI technology with interior design
+                Roomora AI combines AI technology with interior design
                 to help you visualize beautiful spaces before making changes.
               </p>
 
