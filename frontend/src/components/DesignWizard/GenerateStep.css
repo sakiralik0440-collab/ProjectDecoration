@@ -1,0 +1,531 @@
+/* =========================================================
+   PROJECT DECORATION — PREMIUM RESULT UI
+   ========================================================= */
+
+.dw-result {
+  width: 100%;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 64px minmax(0, 1fr);
+  align-items: center;
+  gap: 20px;
+  margin: 32px 0;
+}
+
+
+/* =========================================================
+   IMAGE PANEL
+   ========================================================= */
+
+.dw-result-panel {
+  min-width: 0;
+  position: relative;
+
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+
+  padding: 10px;
+
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  border-radius: 22px;
+
+  background: rgba(255, 255, 255, 0.88);
+
+  box-shadow:
+    0 10px 30px rgba(15, 23, 42, 0.07);
+
+  backdrop-filter: blur(12px);
+
+  transition:
+    transform 0.25s ease,
+    box-shadow 0.25s ease;
+}
+
+.dw-result-panel:hover {
+  transform: translateY(-4px);
+
+  box-shadow:
+    0 18px 42px rgba(15, 23, 42, 0.12);
+}
+
+
+/* =========================================================
+   IMAGE LABELS
+   ========================================================= */
+
+.dw-result-tag {
+  position: absolute;
+
+  top: 22px;
+  left: 22px;
+
+  z-index: 5;
+
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+
+  padding: 7px 13px;
+
+  border-radius: 999px;
+
+  background: rgba(255, 255, 255, 0.92);
+
+  color: #334155;
+
+  font-size: 11px;
+  font-weight: 800;
+
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+
+  box-shadow:
+    0 4px 14px rgba(15, 23, 42, 0.12);
+
+  backdrop-filter: blur(10px);
+}
+
+.dw-result-tag::before {
+  content: "";
+
+  width: 7px;
+  height: 7px;
+
+  border-radius: 50%;
+
+  background: #94a3b8;
+}
+
+.dw-result-tag-accent {
+  background: rgba(17, 24, 39, 0.90);
+  color: #fff;
+
+  border: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+.dw-result-tag-accent::before {
+  background: #22c55e;
+
+  box-shadow:
+    0 0 8px rgba(34, 197, 94, 0.8);
+}
+
+
+/* =========================================================
+   IMAGE CARD
+   ========================================================= */
+
+.preview-card {
+  position: relative;
+
+  width: 100%;
+  max-width: none;
+
+  height: 265px;
+
+  overflow: hidden;
+
+  border-radius: 16px;
+
+  background:
+    linear-gradient(135deg,
+      #f8fafc,
+      #eef2f7);
+
+  cursor: zoom-in;
+
+  isolation: isolate;
+}
+
+
+/* Image */
+
+.preview-image {
+  width: 100%;
+  height: 100%;
+
+  display: block;
+
+  object-fit: cover;
+
+  transition:
+    transform 0.55s cubic-bezier(0.2, 0.7, 0.2, 1);
+}
+
+
+/* Image zoom */
+
+.preview-card:hover .preview-image {
+  transform: scale(1.045);
+}
+
+
+/* =========================================================
+   IMAGE GRADIENT
+   ========================================================= */
+
+.preview-card::after {
+  content: "";
+
+  position: absolute;
+  inset: 0;
+
+  z-index: 2;
+
+  pointer-events: none;
+
+  background:
+    linear-gradient(to bottom,
+      rgba(0, 0, 0, 0.08) 0%,
+      transparent 30%,
+      transparent 65%,
+      rgba(0, 0, 0, 0.28) 100%);
+}
+
+
+/* =========================================================
+   ZOOM OVERLAY
+   ========================================================= */
+
+.preview-hint {
+  position: absolute;
+
+  left: 50%;
+  bottom: 18px;
+
+  z-index: 4;
+
+  transform:
+    translate(-50%, 12px);
+
+  display: flex;
+  align-items: center;
+  gap: 8px;
+
+  padding: 9px 14px;
+
+  border-radius: 999px;
+
+  background: rgba(15, 23, 42, 0.82);
+
+  color: #fff;
+
+  font-size: 12px;
+  font-weight: 600;
+
+  white-space: nowrap;
+
+  opacity: 0;
+
+  backdrop-filter: blur(10px);
+
+  box-shadow:
+    0 6px 18px rgba(0, 0, 0, 0.2);
+
+  transition:
+    opacity 0.25s ease,
+    transform 0.25s ease;
+
+  pointer-events: none;
+}
+
+.preview-hint::before {
+  content: "⌕";
+
+  font-size: 17px;
+  line-height: 1;
+}
+
+.preview-card:hover .preview-hint {
+  opacity: 1;
+
+  transform:
+    translate(-50%, 0);
+}
+
+
+/* =========================================================
+   TRANSFORMATION CENTER
+   ========================================================= */
+
+.dw-result-divider {
+  width: 52px;
+  height: 52px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 50%;
+
+  background:
+    linear-gradient(135deg,
+      #111827,
+      #334155);
+
+  color: #fff;
+
+  font-size: 21px;
+  font-weight: 500;
+
+  box-shadow:
+    0 10px 25px rgba(15, 23, 42, 0.22);
+
+  position: relative;
+}
+
+.dw-result-divider::before {
+  content: "";
+
+  position: absolute;
+  inset: -7px;
+
+  border-radius: 50%;
+
+  border: 1px solid rgba(100, 116, 139, 0.18);
+}
+
+
+/* =========================================================
+   EMPTY RESULT
+   ========================================================= */
+
+.dw-result-empty {
+  width: 100%;
+  height: 265px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  padding: 24px;
+
+  border-radius: 16px;
+
+  background:
+    linear-gradient(135deg,
+      #f8fafc,
+      #eef2f7);
+
+  color: #64748b;
+
+  font-size: 14px;
+  text-align: center;
+}
+
+
+/* =========================================================
+   SUMMARY
+   ========================================================= */
+
+.dw-summary {
+  width: 100%;
+
+  margin-top: 24px;
+
+  padding: 4px 0;
+
+  border-top: 1px solid rgba(15, 23, 42, 0.08);
+  border-bottom: 1px solid rgba(15, 23, 42, 0.08);
+}
+
+.dw-summary-row {
+  min-height: 52px;
+
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  gap: 20px;
+
+  padding: 12px 4px;
+
+  border-bottom: 1px solid rgba(15, 23, 42, 0.06);
+}
+
+.dw-summary-row:last-child {
+  border-bottom: none;
+}
+
+.dw-summary-key {
+  color: #64748b;
+
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.dw-summary-val {
+  color: #0f172a;
+
+  font-size: 14px;
+  font-weight: 700;
+
+  text-align: right;
+}
+
+
+/* =========================================================
+   ACTION BUTTON AREA
+   ========================================================= */
+
+.dw-actions-left {
+  margin-top: 28px;
+
+  display: flex;
+  align-items: center;
+  gap: 12px;
+
+  flex-wrap: wrap;
+}
+
+
+/* =========================================================
+   IMAGE FOCUS
+   ========================================================= */
+
+.preview-card:focus-visible {
+  outline: 3px solid #6366f1;
+  outline-offset: 3px;
+}
+
+
+/* =========================================================
+   MOBILE
+   ========================================================= */
+
+@media (max-width: 850px) {
+  .dw-result {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+
+  .dw-result-divider {
+    margin: 2px auto;
+
+    transform: rotate(90deg);
+  }
+
+  .dw-result-panel {
+    padding: 8px;
+  }
+
+  .preview-card {
+    height: 250px;
+  }
+
+  .dw-result-empty {
+    height: 250px;
+  }
+}
+
+
+/* =========================================================
+   SMALL MOBILE
+   ========================================================= */
+
+@media (max-width: 480px) {
+  .dw-result {
+    margin-top: 24px;
+  }
+
+  .dw-result-panel {
+    padding: 6px;
+
+    border-radius: 18px;
+  }
+
+  .preview-card {
+    height: 210px;
+
+    border-radius: 13px;
+  }
+
+  .dw-result-empty {
+    height: 210px;
+  }
+
+  .dw-result-tag {
+    top: 16px;
+    left: 16px;
+
+    padding: 6px 10px;
+
+    font-size: 10px;
+  }
+
+  .dw-result-divider {
+    width: 46px;
+    height: 46px;
+
+    font-size: 18px;
+  }
+
+  .dw-summary-row {
+    min-height: 48px;
+  }
+
+  .dw-actions-left {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .dw-actions-left .btn {
+    width: 100%;
+  }
+}
+
+
+/* =========================================================
+   REDUCED MOTION
+   ========================================================= */
+
+@media (prefers-reduced-motion: reduce) {
+
+  .dw-result-panel,
+  .preview-image,
+  .preview-hint {
+    transition: none;
+  }
+
+  .dw-result-panel:hover {
+    transform: none;
+  }
+
+  .preview-card:hover .preview-image {
+    transform: none;
+  }
+}
+
+/* ================================
+   SAVE DESIGN BUTTON
+   ================================ */
+
+.btn-save {
+  min-height: 44px;
+  padding: 0 18px;
+  border: 1px solid #cdbb9f;
+  border-radius: 10px;
+  background: #f4ede2;
+  color: #8a693f;
+  font-weight: 800;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-save:hover:not(:disabled) {
+  background: #eaddc9;
+  border-color: #b89a70;
+  color: #70532f;
+  transform: translateY(-1px);
+}
+
+.btn-save.saved {
+  background: #e8dfd2;
+  border-color: #bca889;
+  color: #665239;
+}
+
+.btn-save:disabled {
+  cursor: default;
+  opacity: 0.8;
+}

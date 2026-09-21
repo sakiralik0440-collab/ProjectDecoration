@@ -1,0 +1,343 @@
+/* =========================================
+   PROJECT DECORATION - PREMIUM FOOTER
+========================================= */
+
+.pd-footer {
+    margin-top: 0;
+    background: #292722;
+    color: #eee8de;
+}
+
+/* Main Footer */
+
+.pd-footer-container {
+    width: min(1180px, calc(100% - 40px));
+    margin: 0 auto;
+    padding: 65px 0 55px;
+
+    display: grid;
+    grid-template-columns:
+        1.7fr 1fr 1fr 1.25fr;
+
+    gap: 55px;
+}
+
+/* =========================================
+   BRAND
+========================================= */
+
+.pd-footer-brand {
+    max-width: 330px;
+}
+
+.pd-footer-logo {
+    display: inline-block;
+
+    margin-bottom: 18px;
+
+    color: #f4eee5;
+    text-decoration: none;
+
+    font-size: 25px;
+    font-weight: 800;
+    letter-spacing: -0.03em;
+}
+
+.pd-footer-logo span {
+    color: #c9a979;
+}
+
+.pd-footer-description {
+    max-width: 300px;
+
+    margin: 0 0 25px;
+
+    color: #bdb5aa;
+
+    font-size: 14px;
+    line-height: 1.75;
+}
+
+.pd-footer-start {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+
+    color: #d8bb8e;
+
+    font-size: 13px;
+    font-weight: 800;
+
+    text-decoration: none;
+
+    transition:
+        color 0.2s ease,
+        gap 0.2s ease;
+}
+
+.pd-footer-start:hover {
+    color: #f0d6a9;
+    gap: 14px;
+}
+
+.pd-footer-start span {
+    font-size: 18px;
+    line-height: 1;
+}
+
+/* =========================================
+   COLUMNS
+========================================= */
+
+.pd-footer-column {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+}
+
+.pd-footer-column h4 {
+    margin: 3px 0 22px;
+
+    color: #f1ebe2;
+
+    font-size: 13px;
+    font-weight: 800;
+
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+
+.pd-footer-column a,
+.pd-footer-column>span {
+    margin-bottom: 13px;
+
+    color: #a9a198;
+
+    font-size: 13px;
+    line-height: 1.4;
+
+    text-decoration: none;
+
+    transition:
+        color 0.2s ease,
+        transform 0.2s ease;
+}
+
+.pd-footer-column a:hover {
+    color: #d8bb8e;
+    transform: translateX(3px);
+}
+
+.pd-footer-column>span {
+    cursor: default;
+}
+
+/* =========================================
+   ABOUT
+========================================= */
+
+.pd-footer-about p {
+    max-width: 245px;
+
+    margin: 0 0 22px;
+
+    color: #a9a198;
+
+    font-size: 13px;
+    line-height: 1.7;
+}
+
+/* =========================================
+   SOCIAL ICONS
+========================================= */
+
+.pd-footer-socials {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.pd-footer-socials a {
+    width: 38px;
+    height: 38px;
+
+    margin: 0;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    border: 1px solid #4a453e;
+    border-radius: 50%;
+
+    color: #bdb5aa;
+
+    transition:
+        color 0.2s ease,
+        background 0.2s ease,
+        border-color 0.2s ease,
+        transform 0.2s ease;
+}
+
+.pd-footer-socials a:hover {
+    color: #292722;
+    background: #d2b27e;
+    border-color: #d2b27e;
+
+    transform: translateY(-2px);
+}
+
+.pd-footer-socials svg {
+    width: 17px;
+    height: 17px;
+
+    fill: none;
+    stroke: currentColor;
+
+    stroke-width: 1.7;
+}
+
+.pd-footer-socials svg path {
+    fill: currentColor;
+    stroke: none;
+}
+
+.pd-footer-socials .social-dot {
+    fill: currentColor;
+    stroke: none;
+}
+
+/* =========================================
+   BOTTOM BAR
+========================================= */
+
+.pd-footer-bottom {
+    border-top: 1px solid #403c36;
+}
+
+.pd-footer-bottom-inner {
+    width: min(1180px, calc(100% - 40px));
+    margin: 0 auto;
+
+    min-height: 72px;
+
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    gap: 20px;
+}
+
+.pd-footer-bottom p {
+    margin: 0;
+
+    color: #817a72;
+
+    font-size: 12px;
+}
+
+.pd-footer-bottom-links {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+
+    color: #817a72;
+
+    font-size: 12px;
+}
+
+.pd-footer-dot {
+    color: #b39468;
+}
+
+/* =========================================
+   TABLET
+========================================= */
+
+@media (max-width: 900px) {
+    .pd-footer-container {
+        grid-template-columns:
+            1.5fr 1fr 1fr;
+
+        gap: 40px;
+    }
+
+    .pd-footer-about {
+        grid-column: 2 / 4;
+    }
+
+    .pd-footer-bottom-inner {
+        flex-direction: column;
+        justify-content: center;
+
+        padding: 18px 0;
+    }
+}
+
+/* =========================================
+   MOBILE
+========================================= */
+
+@media (max-width: 650px) {
+    .pd-footer-container {
+        width: min(100% - 36px, 500px);
+
+        grid-template-columns: 1fr 1fr;
+
+        gap: 38px 28px;
+
+        padding: 48px 0 40px;
+    }
+
+    .pd-footer-brand {
+        grid-column: 1 / -1;
+
+        max-width: 100%;
+    }
+
+    .pd-footer-about {
+        grid-column: 1 / -1;
+    }
+
+    .pd-footer-logo {
+        font-size: 23px;
+    }
+
+    .pd-footer-description {
+        max-width: 390px;
+    }
+
+    .pd-footer-column h4 {
+        margin-bottom: 17px;
+    }
+
+    .pd-footer-bottom-inner {
+        width: min(100% - 36px, 500px);
+
+        text-align: center;
+    }
+
+    .pd-footer-bottom-links {
+        flex-wrap: wrap;
+        justify-content: center;
+    }
+}
+
+/* =========================================
+   SMALL MOBILE
+========================================= */
+
+@media (max-width: 420px) {
+    .pd-footer-container {
+        grid-template-columns: 1fr;
+    }
+
+    .pd-footer-brand,
+    .pd-footer-about {
+        grid-column: auto;
+    }
+
+    .pd-footer-column {
+        width: 100%;
+    }
+}
