@@ -1,19 +1,20 @@
 import axios from "axios";
 
 const api = axios.create({
-  baseURL: "http://localhost:5002/api",
+  baseURL: import.meta.env.VITE_API_URL || "http://localhost:5002/api",
   headers: {
     "Content-Type": "application/json",
   },
 });
 
-// Attach the stored JWT to every request so protected endpoints (e.g.
-// /auth/me, future /designs) are authenticated automatically.
+// Attach JWT to protected requests
 api.interceptors.request.use((config) => {
   const token = localStorage.getItem("token");
+
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
   }
+
   return config;
 });
 
