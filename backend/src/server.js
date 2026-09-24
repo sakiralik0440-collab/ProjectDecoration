@@ -23,21 +23,15 @@ const app = express();
 // =====================================================
 
 const allowedOrigins = [
-  // Current Vercel frontend
   'https://project-decoration.vercel.app',
-
-  // Previous Vercel frontend URL
   'https://project-decoration-git-main-sakiralik0440-collabs-projects.vercel.app',
-
-  // Local development
+  'https://project-decoration-69pp17e1z-sakiralik0440-collabs-projects.vercel.app',
   'http://localhost:5173',
 ];
 
 app.use(
   cors({
     origin: function (origin, callback) {
-      // Allow requests without an origin
-      // (Postman, server-to-server, etc.)
       if (!origin) {
         return callback(null, true);
       }
