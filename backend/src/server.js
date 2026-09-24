@@ -11,38 +11,84 @@ const express = require('express');
 const cors = require('cors');
 const morgan = require('morgan');
 const dbConnect = require('./config/db');
+
 const authRoutes = require('./routes/authRoutes');
 const designRoutes = require('./routes/designRoutes');
 const errorHandler = require('./middlewares/errorHandler');
 
 const app = express();
 
-// Middleware
+// =====================================================
+// CORS
+// =====================================================
+
+const allowedOrigins = [
+  // Current Vercel frontend
+  'https://project-decoration.vercel.app',
+
+  // Previous Vercel frontend URL
+  'https://project-decoration-git-main-sakiralik0440-collabs-projects.vercel.app',
+
+  // Local development
+  'http://localhost:5173',
+];
+
 app.use(
   cors({
-    origin: [
-      'https://project-decoration-git-main-sakiralik0440-collabs-projects.vercel.app',
-      'http://localhost:5173',
-    ],
+    origin: function (origin, callback) {
+      // Allow requests without an origin
+      // (Postman, server-to-server, etc.)
+      if (!origin) {
+        return callback(null, true);
+      }
+
+      if (allowedOrigins.includes(origin)) {
+        return callback(null, true);
+      }
+
+      console.log('[CORS] Blocked origin:', origin);
+      return callback(new Error('Not allowed by CORS'));
+    },
     credentials: true,
   })
 );
 
+// =====================================================
+// BODY PARSING
+// =====================================================
+
 app.use(express.json({ limit: '15mb' }));
 app.use(express.urlencoded({ extended: true, limit: '15mb' }));
+
+// =====================================================
+// LOGGER
+// =====================================================
+
 app.use(morgan('dev'));
 
-// Connect to DB
+// =====================================================
+// DATABASE
+// =====================================================
+
 dbConnect();
 
-// Routes
+// =====================================================
+// ROUTES
+// =====================================================
+
 app.use('/api/auth', authRoutes);
 app.use('/api/designs', designRoutes);
 
-// Global error handler
+// =====================================================
+// GLOBAL ERROR HANDLER
+// =====================================================
+
 app.use(errorHandler);
 
-// Render provides PORT automatically
+// =====================================================
+// SERVER
+// =====================================================
+
 const PORT = process.env.PORT || 5002;
 
 app.listen(PORT, '0.0.0.0', () => {
