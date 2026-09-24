@@ -1,91 +1,238 @@
-
 const axios = require("axios");
 const FormData = require("form-data");
-const sharp = require("sharp");
 
-const {
-  buildDesignPrompt,
-  ALLOWED_ROOM_TYPES,
-  ALLOWED_DESIGN_STYLES,
-} = require("./aiPrompts");
+/* =========================================================
+   Pollinations Configuration
+========================================================= */
 
-function invalidField(message) {
-  const error = new Error(message);
-  error.status = 400;
-  return error;
-}
+const POLLINATIONS_MODEL = "kontext";
+const POLLINATIONS_EDIT_URL =
+  "https://gen.pollinations.ai/v1/images/edits";
 
-function notConfiguredError() {
-  const error = new Error("Pollinations AI is not configured.");
-  error.status = 503;
-  error.code = "AI_NOT_CONFIGURED";
-  return error;
-}
+/* =========================================================
+   Allowed Room Types
+========================================================= */
 
-function validateInputs({ roomImage, roomType, designStyle }) {
+const ALLOWED_ROOM_TYPES = [
+  "living-room",
+  "bedroom",
+  "kitchen",
+  "office",
+];
+
+/* =========================================================
+   Allowed Design Styles
+========================================================= */
+
+const ALLOWED_DESIGN_STYLES = [
+  "classic",
+  "modern",
+  "luxury",
+  "minimal",
+  "rustic",
+];
+
+/* =========================================================
+   Validation
+========================================================= */
+
+function validateInputs({
+  roomImage,
+  roomType,
+  designStyle,
+}) {
   if (!roomImage) {
-    throw invalidField("Room image is required.");
+    throw new Error("Room image is required.");
   }
 
-  if (!roomType || !ALLOWED_ROOM_TYPES.includes(roomType)) {
-    throw invalidField("Room type is missing or invalid.");
+  if (!ALLOWED_ROOM_TYPES.includes(roomType)) {
+    throw new Error(`Invalid room type: ${roomType}`);
   }
 
-  if (!designStyle || !ALLOWED_DESIGN_STYLES.includes(designStyle)) {
-    throw invalidField("Design style is missing or invalid.");
+  if (!ALLOWED_DESIGN_STYLES.includes(designStyle)) {
+    throw new Error(`Invalid design style: ${designStyle}`);
   }
 }
 
-function getImageBuffer(roomImage) {
-  if (Buffer.isBuffer(roomImage)) {
-    return roomImage;
+/* =========================================================
+   Convert Base64 / Data URI to Buffer
+========================================================= */
+
+function parseRoomImage(roomImage) {
+  if (typeof roomImage !== "string") {
+    throw new Error("Invalid room image format.");
   }
 
-  const value = String(roomImage);
+  let mimeType = "image/jpeg";
+  let base64Data = roomImage;
 
-  if (value.startsWith("data:image/")) {
-    const base64 = value.replace(
-      /^data:image\/[^;]+;base64,/,
-      ""
+  /*
+    Example:
+    data:image/jpeg;base64,xxxxx
+  */
+
+  if (roomImage.startsWith("data:image/")) {
+    const match = roomImage.match(
+      /^data:(image\/[a-zA-Z0-9.+-]+);base64,(.+)$/
     );
 
-    return Buffer.from(base64, "base64");
+    if (!match) {
+      throw new Error("Invalid image data URI.");
+    }
+
+    mimeType = match[1];
+    base64Data = match[2];
   }
 
-  return Buffer.from(value, "base64");
+  /*
+    Remove accidental whitespace/newlines
+  */
+
+  base64Data = base64Data.replace(/\s/g, "");
+
+  const imageBuffer = Buffer.from(base64Data, "base64");
+
+  if (!imageBuffer.length) {
+    throw new Error("Unable to decode room image.");
+  }
+
+  let extension = "jpg";
+
+  if (mimeType === "image/png") {
+    extension = "png";
+  } else if (mimeType === "image/webp") {
+    extension = "webp";
+  } else if (mimeType === "image/jpeg") {
+    extension = "jpg";
+  }
+
+  return {
+    buffer: imageBuffer,
+    mimeType,
+    filename: `room.${extension}`,
+  };
 }
 
-async function prepareImage(roomImage) {
-  const originalBuffer = getImageBuffer(roomImage);
+/* =========================================================
+   Build Interior Design Prompt
+========================================================= */
 
-  console.log(
-    "[POLLINATIONS] Original image:",
-    Math.round(originalBuffer.length / 1024),
-    "KB"
-  );
+function buildDesignPrompt({
+  roomType,
+  designStyle,
+}) {
+  const roomName = roomType.replace("-", " ");
 
-  const processedBuffer = await sharp(originalBuffer)
-    .rotate()
-    .resize({
-      width: 1024,
-      height: 1024,
-      fit: "inside",
-      withoutEnlargement: true,
-    })
-    .jpeg({
-      quality: 75,
-      mozjpeg: true,
-    })
-    .toBuffer();
+  return `
+You are a professional interior designer and photorealistic interior visualization specialist.
 
-  console.log(
-    "[POLLINATIONS] Compressed image:",
-    Math.round(processedBuffer.length / 1024),
-    "KB"
-  );
+EDIT THE PROVIDED ROOM PHOTO.
 
-  return processedBuffer;
+Transform this exact ${roomName} into a premium ${designStyle} interior.
+
+IMPORTANT:
+The uploaded image is the ORIGINAL ROOM.
+The final image must look like the SAME ROOM after professional interior renovation.
+
+PRESERVE EXACTLY AS MUCH AS POSSIBLE:
+
+- Same room architecture
+- Same walls
+- Same windows
+- Same doors
+- Same floor
+- Same ceiling
+- Same room dimensions
+- Same camera viewpoint
+- Same camera perspective
+- Same camera height
+- Same room layout
+- Same architectural elements
+- Same lighting direction
+- Same structural openings
+
+ONLY redesign the interior furniture, decoration and styling.
+
+CHANGE / IMPROVE:
+
+- Sofa
+- Bed if applicable
+- Tables
+- Chairs
+- Cabinets
+- Storage
+- Curtains
+- Rugs
+- Lighting fixtures
+- Wall decoration
+- Decorative objects
+- Furniture materials
+- Furniture colors
+- Interior color palette
+- Textures
+- Styling
+- Accessories
+- Decorative plants where appropriate
+
+DESIGN STYLE:
+${designStyle}
+
+ROOM TYPE:
+${roomName}
+
+QUALITY REQUIREMENTS:
+
+- Photorealistic
+- Premium interior design
+- Professional interior photography
+- Realistic furniture proportions
+- Realistic materials
+- Natural shadows
+- Natural reflections
+- Realistic lighting
+- High-end interior visualization
+- Elegant composition
+- Balanced furniture placement
+- Professional interior designer quality
+
+CRITICAL ROOM PRESERVATION:
+
+Do NOT change the room into another room.
+
+Do NOT:
+
+- Move walls
+- Remove walls
+- Add unnecessary walls
+- Add unnecessary windows
+- Remove existing windows
+- Change doors
+- Change the camera angle
+- Change the camera perspective
+- Change the floor structure
+- Change the ceiling structure
+- Distort room dimensions
+- Change architectural openings
+- Create unrealistic furniture
+- Create floating furniture
+- Create duplicated objects
+- Create distorted objects
+- Create cartoon-like objects
+- Make the image look like a video game
+
+The output must look like a real photograph of the SAME ROOM redesigned by a professional interior designer.
+
+The requested ${designStyle} style should be clearly visible through furniture, materials, colors, lighting and decoration.
+
+Keep the result natural, realistic and premium.
+
+Return ONLY the edited room image.
+`;
 }
+
+/* =========================================================
+   Generate Room Design with Pollinations
+========================================================= */
 
 async function generateRoomDesign({
   roomImage,
@@ -101,159 +248,254 @@ async function generateRoomDesign({
   const apiKey = process.env.POLLINATIONS_API_KEY;
 
   if (!apiKey) {
-    throw notConfiguredError();
+    throw new Error(
+      "POLLINATIONS_API_KEY is missing. Add it to backend .env."
+    );
   }
 
-  /*
-   * IMPORTANT:
-   * Do NOT pass roomImage to buildDesignPrompt.
-   *
-   * roomImage is a large base64 string.
-   * Passing it into the prompt causes:
-   *
-   * "Too big: expected string to have <=32000 characters"
-   */
+  const image = parseRoomImage(roomImage);
 
   const prompt = buildDesignPrompt({
     roomType,
     designStyle,
   });
 
+  console.log(
+    "[Pollinations] Starting room design generation..."
+  );
+
+  console.log(
+    "[Pollinations] Model:",
+    POLLINATIONS_MODEL
+  );
+
+  console.log(
+    "[Pollinations] Room:",
+    roomType
+  );
+
+  console.log(
+    "[Pollinations] Style:",
+    designStyle
+  );
+
   try {
-    const imageBuffer = await prepareImage(roomImage);
+    /* =====================================================
+       Multipart Form Data
+    ===================================================== */
 
     const form = new FormData();
 
-    /*
-     * Send the room image as an actual file.
-     */
-    form.append("image", imageBuffer, {
-      filename: "room.jpg",
-      contentType: "image/jpeg",
-    });
+    form.append(
+      "image",
+      image.buffer,
+      {
+        filename: image.filename,
+        contentType: image.mimeType,
+      }
+    );
 
-    /*
-     * Send ONLY the text instructions here.
-     * No base64 image inside prompt.
-     */
-    form.append("prompt", prompt);
+    form.append(
+      "prompt",
+      prompt
+    );
 
     form.append(
       "model",
-      "black-forest-labs/flux.1-kontext-pro"
+      POLLINATIONS_MODEL
     );
 
-    form.append("size", "1024x1024");
-
-    form.append("response_format", "url");
-
-    console.log(
-      "[POLLINATIONS] Sending image for editing..."
+    form.append(
+      "size",
+      "1024x1024"
     );
+
+    form.append(
+      "response_format",
+      "url"
+    );
+
+    /* =====================================================
+       Pollinations API Request
+    ===================================================== */
 
     const response = await axios.post(
-      "https://gen.pollinations.ai/v1/images/edits",
+      POLLINATIONS_EDIT_URL,
       form,
       {
         headers: {
           ...form.getHeaders(),
           Authorization: `Bearer ${apiKey}`,
         },
-        maxContentLength: Infinity,
+
         maxBodyLength: Infinity,
-        timeout: 300000,
+        maxContentLength: Infinity,
+
+        timeout: 180000,
       }
     );
 
-    const data = response.data;
-
     console.log(
-      "[POLLINATIONS] Generation successful."
+      "[Pollinations] Request completed."
     );
 
-    if (data?.data?.[0]?.url) {
-      return {
-        imageUrl: data.data[0].url,
-        prompt,
-      };
+    const data = response?.data;
+
+    if (!data) {
+      throw new Error(
+        "Pollinations returned an empty response."
+      );
     }
 
-    if (data?.data?.[0]?.b64_json) {
-      return {
-        imageUrl:
-          `data:image/png;base64,${data.data[0].b64_json}`,
-        prompt,
-      };
+    console.log(
+      "[Pollinations] Response received."
+    );
+
+    /* =====================================================
+       Extract Generated Image URL
+    ===================================================== */
+
+    let imageUrl = null;
+
+    /*
+      OpenAI-compatible response:
+
+      {
+        data: [
+          {
+            url: "https://..."
+          }
+        ]
+      }
+    */
+
+    if (
+      Array.isArray(data.data) &&
+      data.data.length > 0
+    ) {
+      imageUrl =
+        data.data[0]?.url || null;
+
+      /*
+        Some responses may return b64_json
+        instead of URL.
+      */
+
+      if (
+        !imageUrl &&
+        data.data[0]?.b64_json
+      ) {
+        imageUrl =
+          `data:image/png;base64,${data.data[0].b64_json}`;
+      }
+    }
+
+    /*
+      Fallback for alternate response shapes
+    */
+
+    if (!imageUrl && data.url) {
+      imageUrl = data.url;
+    }
+
+    if (!imageUrl) {
+      console.error(
+        "[Pollinations] Unexpected response:",
+        JSON.stringify(data, null, 2)
+      );
+
+      throw new Error(
+        "Pollinations did not return a generated image."
+      );
+    }
+
+    console.log(
+      "[Pollinations] Generated image:",
+      imageUrl
+    );
+
+    console.log(
+      "[Pollinations] Room design generated successfully."
+    );
+
+    return {
+      imageUrl,
+      prompt,
+      model: POLLINATIONS_MODEL,
+      requestId:
+        response?.headers?.["x-request-id"] ||
+        null,
+    };
+
+  } catch (error) {
+    console.error(
+      "[Pollinations] Generation failed:"
+    );
+
+    console.error(
+      error?.message || error
+    );
+
+    /* =====================================================
+       API Error Details
+    ===================================================== */
+
+    if (error?.response) {
+      console.error(
+        "[Pollinations] Status:",
+        error.response.status
+      );
+
+      console.error(
+        "[Pollinations] Response:",
+        JSON.stringify(
+          error.response.data,
+          null,
+          2
+        )
+      );
+
+      if (error.response.status === 401) {
+        throw new Error(
+          "Pollinations API key is invalid or missing."
+        );
+      }
+
+      if (error.response.status === 402) {
+        throw new Error(
+          "Pollinations balance/Pollen is exhausted. Please check your Pollinations account balance."
+        );
+      }
+
+      if (error.response.status === 403) {
+        throw new Error(
+          "Pollinations API access is not available for this key/model."
+        );
+      }
+
+      if (error.response.status === 429) {
+        throw new Error(
+          "Pollinations rate limit reached. Please try again later."
+        );
+      }
     }
 
     throw new Error(
-      "Pollinations returned an unexpected response."
+      error?.message ||
+      "Pollinations image generation failed."
     );
-  } catch (error) {
-    console.error(
-      "POLLINATIONS AI ERROR:",
-      error.response?.data || error.message
-    );
-
-    const apiError =
-      error.response?.data?.error?.message ||
-      error.response?.data?.error ||
-      error.response?.data?.message ||
-      error.message ||
-      "Pollinations image generation failed.";
-
-    const finalError = new Error(apiError);
-
-    finalError.status =
-      error.response?.status || 500;
-
-    throw finalError;
   }
 }
 
-exports.validateInputs = validateInputs;
-exports.generateRoomDesign = generateRoomDesign;
+/* =========================================================
+   Exports
+========================================================= */
 
+exports.validateInputs =
+  validateInputs;
 
-// cd C:\ProjectDecoration\backend
-// npm run dev
-// ```
+exports.generateRoomDesign =
+  generateRoomDesign;
 
-// If the server is already running, just:
-
-// ```text
-// Ctrl + C
-// npm run dev
-// ```
-
-// ### Why this should fix your exact error
-
-// **Before:**
-
-// ```text
-// roomImage
-//    ↓
-// buildDesignPrompt()
-//    ↓
-// huge base64 string inside prompt
-//    ↓
-// > 32,000 characters ❌
-// ```
-
-// **Now:**
-
-// ```text
-// roomImage ───────────────→ multipart image
-//                               ↓
-//                          Pollinations
-
-// roomType + designStyle → short text prompt
-//                               ↓
-//                          Pollinations
-// ```
-
-// So the `roomImage` is **never inserted into the prompt**.
-
-// Also, the current Pollinations platform explicitly supports media inputs and image editing models such as **FLUX.1 Kontext Pro**, so this architecture matches the service's current capabilities.
-
-// **Don't change frontend, don't change `.env`, and don't touch LocalAI.** Just replace this one file and restart the backend.
+exports.buildDesignPrompt =
+  buildDesignPrompt;

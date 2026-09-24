@@ -1,8 +1,11 @@
 require('dotenv').config();
 
-// SAFE startup diagnostics — never print the token itself.
+// SAFE startup diagnostics — never print secret values.
 console.log("[AI CONFIG] provider:", process.env.AI_PROVIDER);
-console.log("[AI CONFIG] HF token configured:", Boolean(process.env.HF_TOKEN));
+console.log(
+  "[AI CONFIG] Pollinations key configured:",
+  Boolean(process.env.POLLINATIONS_API_KEY)
+);
 
 const express = require('express');
 const cors = require('cors');
@@ -15,9 +18,18 @@ const errorHandler = require('./middlewares/errorHandler');
 const app = express();
 
 // Middleware
-app.use(cors());
-app.use(express.json({ limit: "15mb" }));
-app.use(express.urlencoded({ extended: true, limit: "15mb" }));
+app.use(
+  cors({
+    origin: [
+      'https://project-decoration-git-main-sakiralik0440-collabs-projects.vercel.app',
+      'http://localhost:5173',
+    ],
+    credentials: true,
+  })
+);
+
+app.use(express.json({ limit: '15mb' }));
+app.use(express.urlencoded({ extended: true, limit: '15mb' }));
 app.use(morgan('dev'));
 
 // Connect to DB
@@ -30,7 +42,9 @@ app.use('/api/designs', designRoutes);
 // Global error handler
 app.use(errorHandler);
 
-const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => {
-  console.log(`Server running on http://localhost:${PORT}`);
+// Render provides PORT automatically
+const PORT = process.env.PORT || 5002;
+
+app.listen(PORT, '0.0.0.0', () => {
+  console.log(`Server running on port ${PORT}`);
 });
