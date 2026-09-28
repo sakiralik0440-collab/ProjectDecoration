@@ -31,10 +31,7 @@ exports.generate = async (req, res) => {
       design,
     });
   } catch (err) {
-    console.error(
-      "GENERATE DESIGN ERROR:",
-      err
-    );
+    console.error("GENERATE DESIGN ERROR:", err);
 
     const status = err.status || 500;
 
@@ -43,9 +40,7 @@ exports.generate = async (req, res) => {
     if (
       status === 500 &&
       err.message &&
-      err.message.includes(
-        "AI image generation"
-      )
+      err.message.includes("AI image generation")
     ) {
       message =
         "AI image generation failed. Please try again.";
@@ -70,7 +65,7 @@ exports.generate = async (req, res) => {
 // GET /api/designs?limit=N
 // ============================================
 
-const list = async (req, res, next) => {
+exports.list = async (req, res) => {
   try {
     const userId = req.user?.id || req.user?._id;
 
@@ -80,7 +75,9 @@ const list = async (req, res, next) => {
       });
     }
 
-    const designs = await Design.find({ user: userId })
+    const designs = await Design.find({
+      user: userId,
+    })
       .sort({ createdAt: -1 })
       .limit(50)
       .lean();
@@ -88,9 +85,12 @@ const list = async (req, res, next) => {
     return res.status(200).json({
       designs,
     });
-  } catch (error) {
-    console.error("[DESIGNS LIST ERROR]", error);
-    return next(error);
+  } catch (err) {
+    console.error("LIST DESIGNS ERROR:", err);
+
+    return res.status(500).json({
+      message: "Unable to load your designs.",
+    });
   }
 };
 
@@ -115,14 +115,10 @@ exports.getById = async (req, res) => {
       design,
     });
   } catch (err) {
-    console.error(
-      "GET DESIGN ERROR:",
-      err
-    );
+    console.error("GET DESIGN ERROR:", err);
 
     return res.status(500).json({
-      message:
-        "Unable to load the design.",
+      message: "Unable to load the design.",
     });
   }
 };
@@ -144,38 +140,30 @@ exports.download = async (req, res) => {
       });
     }
 
-    const generatedImage =
-      design.generatedImage;
+    const generatedImage = design.generatedImage;
 
     if (!generatedImage) {
       return res.status(404).json({
-        message:
-          "Generated image not available.",
+        message: "Generated image not available.",
       });
     }
 
-    // Pollinations / external image URL
-    if (
-      /^https?:\/\//i.test(
-        generatedImage
-      )
-    ) {
+    // External image URL
+    if (/^https?:\/\//i.test(generatedImage)) {
       const axios = require("axios");
 
       const response = await axios.get(
         generatedImage,
         {
-          responseType:
-            "arraybuffer",
+          responseType: "arraybuffer",
           timeout: 30000,
         }
       );
 
       res.setHeader(
         "Content-Type",
-        response.headers[
-        "content-type"
-        ] || "image/jpeg"
+        response.headers["content-type"] ||
+        "image/jpeg"
       );
 
       res.setHeader(
@@ -183,19 +171,12 @@ exports.download = async (req, res) => {
         `attachment; filename="ai-room-design-${design._id}.jpg"`
       );
 
-      return res.send(
-        response.data
-      );
+      return res.send(response.data);
     }
 
-    return res.redirect(
-      generatedImage
-    );
+    return res.redirect(generatedImage);
   } catch (err) {
-    console.error(
-      "DOWNLOAD DESIGN ERROR:",
-      err
-    );
+    console.error("DOWNLOAD DESIGN ERROR:", err);
 
     return res.status(502).json({
       message:
@@ -210,11 +191,10 @@ exports.download = async (req, res) => {
 
 exports.remove = async (req, res) => {
   try {
-    const design =
-      await Design.findOneAndDelete({
-        _id: req.params.id,
-        user: req.user.id,
-      });
+    const design = await Design.findOneAndDelete({
+      _id: req.params.id,
+      user: req.user.id,
+    });
 
     if (!design) {
       return res.status(404).json({
@@ -223,19 +203,14 @@ exports.remove = async (req, res) => {
     }
 
     return res.status(200).json({
-      message:
-        "Design deleted successfully.",
+      message: "Design deleted successfully.",
       designId: design._id,
     });
   } catch (err) {
-    console.error(
-      "DELETE DESIGN ERROR:",
-      err
-    );
+    console.error("DELETE DESIGN ERROR:", err);
 
     return res.status(500).json({
-      message:
-        "Unable to delete the design.",
+      message: "Unable to delete the design.",
     });
   }
 };
