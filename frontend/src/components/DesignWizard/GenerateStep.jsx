@@ -1,4 +1,4 @@
-import React, { useRef, useState } from "react";
+import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import Lightbox from "../Lightbox";
 import "./GenerateStep.css";
@@ -21,8 +21,6 @@ const GenerateStep = ({
 
   const [lightboxOpen, setLightboxOpen] = useState(false);
   const [lightboxSrc, setLightboxSrc] = useState("");
-
-  const downloadLinkRef = useRef(null);
 
   /* =========================
      LIGHTBOX
@@ -80,12 +78,10 @@ const GenerateStep = ({
     setSaved(true);
 
     /*
-      generateDesign() already creates the design
-      in the backend.
+      generateDesign() already saves the design
+      in MongoDB through the backend.
 
-      So we DON'T call another save API here.
-      We simply open My Designs where the generated
-      design is already available.
+      So no second save API is required.
     */
 
     setTimeout(() => {
@@ -101,28 +97,62 @@ const GenerateStep = ({
     if (!result?._id || downloading) return;
 
     setDownloading(true);
+    setErrorMessage("");
 
     try {
       const blob = await downloadDesign(result._id);
 
-      const url = window.URL.createObjectURL(blob);
-
-      const a = downloadLinkRef.current;
-
-      if (a) {
-        a.href = url;
-        a.download = `room-design-${result._id}.png`;
-        a.click();
+      if (!blob || blob.size === 0) {
+        throw new Error("Downloaded file is empty.");
       }
 
-      setTimeout(() => {
-        window.URL.revokeObjectURL(url);
-      }, 1000);
+      const url = window.URL.createObjectURL(blob);
+
+      /*
+        Mobile browsers handle direct anchor downloads
+        differently. Opening the generated blob in a new
+        tab gives mobile users a reliable way to save the image.
+      */
+
+      const isMobile =
+        /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+
+      if (isMobile) {
+        const newWindow = window.open(url, "_blank");
+
+        if (!newWindow) {
+          /*
+            If popup is blocked, navigate current tab
+            to the image instead.
+          */
+          window.location.href = url;
+        }
+
+        setTimeout(() => {
+          window.URL.revokeObjectURL(url);
+        }, 60000);
+      } else {
+        const link = document.createElement("a");
+
+        link.href = url;
+        link.download = `room-design-${result._id}.png`;
+        link.rel = "noopener";
+
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+
+        setTimeout(() => {
+          window.URL.revokeObjectURL(url);
+        }, 2000);
+      }
     } catch (err) {
       console.error("Download design error:", err);
 
       setErrorMessage(
         err?.response?.data?.message ||
+        err?.response?.data?.error ||
+        err?.message ||
         "Unable to download the design right now."
       );
     } finally {
@@ -142,8 +172,8 @@ const GenerateStep = ({
         </h2>
 
         <p className="dw-subtitle">
-          Our AI is analyzing the room and creating your
-          personalized interior design. This can take up to a minute.
+          Our AI is analyzing the room and creating your personalized
+          interior design. This can take up to a minute.
         </p>
 
         <div className="state-box centered">
@@ -218,9 +248,7 @@ const GenerateStep = ({
 
         <div className="dw-result">
 
-          {/* =========================
-              BEFORE
-              ========================= */}
+          {/* BEFORE */}
 
           <div className="dw-result-panel">
             <span className="dw-result-tag">
@@ -237,10 +265,7 @@ const GenerateStep = ({
               onKeyDown={(e) => {
                 if (e.key === "Enter" || e.key === " ") {
                   e.preventDefault();
-
-                  openLightbox(
-                    payload.roomImagePreview
-                  );
+                  openLightbox(payload.roomImagePreview);
                 }
               }}
             >
@@ -256,17 +281,13 @@ const GenerateStep = ({
             </div>
           </div>
 
-          {/* =========================
-              ARROW
-              ========================= */}
+          {/* ARROW */}
 
           <div className="dw-result-divider">
             →
           </div>
 
-          {/* =========================
-              AFTER
-              ========================= */}
+          {/* AFTER */}
 
           <div className="dw-result-panel">
             <span className="dw-result-tag dw-result-tag-accent">
@@ -284,7 +305,6 @@ const GenerateStep = ({
                 onKeyDown={(e) => {
                   if (e.key === "Enter" || e.key === " ") {
                     e.preventDefault();
-
                     openLightbox(generatedUrl);
                   }
                 }}
@@ -307,9 +327,7 @@ const GenerateStep = ({
           </div>
         </div>
 
-        {/* =========================
-            LIGHTBOX
-            ========================= */}
+        {/* LIGHTBOX */}
 
         <Lightbox
           isOpen={lightboxOpen}
@@ -317,9 +335,7 @@ const GenerateStep = ({
           onClose={closeLightbox}
         />
 
-        {/* =========================
-            DESIGN DETAILS
-            ========================= */}
+        {/* DESIGN DETAILS */}
 
         <div className="dw-summary">
 
@@ -345,9 +361,7 @@ const GenerateStep = ({
 
         </div>
 
-        {/* =========================
-            ACTIONS
-            ========================= */}
+        {/* ACTIONS */}
 
         <div className="dw-actions dw-actions-left">
 
@@ -372,7 +386,9 @@ const GenerateStep = ({
             className="btn btn-primary"
             onClick={handleDownload}
             disabled={
-              downloading || !result?._id || !generatedUrl
+              downloading ||
+              !result?._id ||
+              !generatedUrl
             }
           >
             {downloading
@@ -392,16 +408,13 @@ const GenerateStep = ({
 
         </div>
 
-        {/* Hidden download link */}
+        {/* MOBILE DOWNLOAD HELP */}
 
-        <a
-          ref={downloadLinkRef}
-          href="#download"
-          style={{ display: "none" }}
-          aria-hidden="true"
-        >
-          Download
-        </a>
+        {errorMessage && (
+          <div className="download-error">
+            {errorMessage}
+          </div>
+        )}
       </>
     );
   }
