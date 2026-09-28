@@ -70,37 +70,27 @@ exports.generate = async (req, res) => {
 // GET /api/designs?limit=N
 // ============================================
 
-exports.list = async (req, res) => {
+const list = async (req, res, next) => {
   try {
-    const limit = Math.min(
-      Math.max(
-        Number(req.query.limit) || 20,
-        1
-      ),
-      50
-    );
+    const userId = req.user?.id || req.user?._id;
 
-    const designs = await Design.find({
-      user: req.user.id,
-    })
-      .sort({
-        createdAt: -1,
-      })
-      .limit(limit);
+    if (!userId) {
+      return res.status(401).json({
+        message: "Unauthorized",
+      });
+    }
+
+    const designs = await Design.find({ user: userId })
+      .sort({ createdAt: -1 })
+      .limit(50)
+      .lean();
 
     return res.status(200).json({
       designs,
     });
-  } catch (err) {
-    console.error(
-      "LIST DESIGNS ERROR:",
-      err
-    );
-
-    return res.status(500).json({
-      message:
-        "Unable to load your designs.",
-    });
+  } catch (error) {
+    console.error("[DESIGNS LIST ERROR]", error);
+    return next(error);
   }
 };
 
