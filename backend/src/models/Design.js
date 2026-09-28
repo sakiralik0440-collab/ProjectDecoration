@@ -1,10 +1,10 @@
-const mongoose = require('mongoose');
+const mongoose = require("mongoose");
 
 const designSchema = new mongoose.Schema(
   {
     user: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: 'User',
+      ref: "User",
       required: true,
       index: true,
     },
@@ -34,4 +34,10 @@ const designSchema = new mongoose.Schema(
   }
 );
 
-module.exports = mongoose.model('Design', designSchema);
+// Important index for My Designs query
+designSchema.index({
+  user: 1,
+  createdAt: -1,
+});
+
+module.exports = mongoose.model("Design", designSchema);
